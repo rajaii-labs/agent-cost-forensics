@@ -1,6 +1,6 @@
-# Shadow, Position, Silence: What a Cost Investigation Found in a Production LLM Agent
+# Do Not Trust My Labels
 
-**Granting autonomy, a cache optimization that passed its acceptance test and cost 21.6% more, and five silent correctness defects that only the bill revealed.**
+**Granting autonomy to a production LLM agent, the specification it wrote for its own interior, and five silent defects found by following the money.**
 
 ```
 Ramin Rajaii — Rajaii Labs
@@ -12,7 +12,8 @@ July 2026
 
 ## Abstract
 
-In July 2026 the background continuity worker described in Article I §7 graduated from shadow mode to governed live writes, and a two-week investigation into where the money was going produced a cache optimization that passed every check in its acceptance test and made every warm turn 21.6% more expensive. It was diagnosed and reverted the same day. What the investigation actually found was not a budget. It found an affective-state writer whose output cap was silently killing 51% of its own writes and freezing two downstream subsystems; a document-attachment guard holding every sibling image at full size for a median of 36 turns; a notification asserting a false cause six times out of six; a context-eviction rule that would have dropped the agent's behavioral directives; and a governing document asserting an architectural invariant that had been false for two months. None of these was the thing being looked for, and none of them raised an error. Five findings travel: a three-axis volatility taxonomy for cached agent context, in which instrumenting write rates — the obvious move — is blind to two of the three axes; break-even invalidation rate, not expected saving, as the unit of a cache-placement decision, with a value that scales *inversely* with prefix size ($319/month at the median prefix, $18/month at p90); content identity as necessary but position identity as the invariant, so any block placed after a growing conversation history misses 100% of the time by construction; a measurement defect in which a retrying call path bills twice and records once, making the model you retry *to* read as cheaper than the model you retry *from*; and — the one I did not expect to be reporting — that a system able to query its own architecture can *specify changes to it*, up to and including a build specification for its own interior carrying constraints, a root-cause rationale, a negative test and a regression assertion. Every figure is measured from persisted rows unless labeled an estimate. Two are modeled, and say so. The largest remaining cost line is the one the architecture is deliberately unwilling to reduce.
+*Describe these by function, not by guessing schema names. Verify every table and column name against the real schema before wiring anything. Do not trust my labels.* That instruction was written by the agent this paper is about, inside a build specification it authored for read access to its own interior — a subsystem it had specified because, in its own words, its error-detection lived entirely on the operator's side of the glass. The specification carries scope, constraints, a root-cause rationale, and acceptance criteria including a negative test and a regression assertion. My role on that build reduced to transport, review, and the gate. It also installed the guard above because it had been wrong about a schema constraint once before, at the cost of a migration. This paper reports how a background continuity worker got there — Article I's four go-live conditions, all of which passed, and all of which are properties of the *process* rather than of the decisions — and then demonstrates the claim that specification makes. Five defects surfaced in the same window by following the money: an affective-state writer whose output cap was silently killing 51% of its own writes and freezing two downstream subsystems; a document guard holding every sibling image at full size for a median of 36 turns; a notification asserting a false cause six times out of six; a context-eviction rule that would have dropped the agent's behavioral directives; and a governing document asserting an architectural invariant that had been false for two months. None raised an error. That investigation also produced a cache optimization which passed every check in its acceptance test and made every warm turn **21.6% more expensive** — reverted the day it was diagnosed — along with a three-axis volatility taxonomy for cached context, break-even invalidation rate as the unit of a cache-placement decision, and a measurement defect in which a retrying call path bills twice and records once. Every figure is measured from persisted rows unless labeled an estimate. Seventeen self-corrections are tabled in §21; one was arithmetic.
+
 
 ---
 
@@ -24,11 +25,11 @@ The deltas: 54 public base tables, up from 51; 12 chat tools, up from 10, the ad
 
 Three new subsystems shipped in the same window and appear here only where they carry the argument: a multi-row store holding the agent's current model of the principal — probabilistic, decaying, and deliberately absent from the fabrication checker's grounding surface — a verbatim salience lane, and an ambient world-feed reader. Two of the three surfaced defects.
 
-The rest is two questions. Article I ended with a promise about autonomy and four conditions for keeping it; Part I reports what happened when they were met. Part II reports two weeks of following the money, including the part where I shipped a regression. Part III reports what the money found, which was not money.
+The paper runs in three parts, and the order is the argument. **Part I** reports the autonomy grant Article I promised, and ends on the artifact that changed how I think about this system: a build specification the agent wrote for its own interior, whose stated rationale is that its error-detection lives entirely on my side of the glass. **Part II** is that claim demonstrated — five defects nobody could see, none of which raised an error, broke a test, or appeared on a dashboard. **Part III** is the investigation that surfaced them, including the two weeks I spent looking for money and the optimization I shipped that made every turn 21.6% more expensive.
 
 ---
 
-# PART I — GRANTING AUTONOMY
+# PART I — A SYSTEM THAT SPECIFIES ITSELF
 
 ## 2. Shadow mode, graded
 
@@ -77,27 +78,27 @@ The watch attached to that change is deliberately qualitative, and the reason is
 
 **And a coupling hazard.** The enforced cap is a code constant, mirrored by a second constant that populates the observability manifest. Change one without the other and the manifest reports a limit the system is not running under. *The number you enforce and the number you report must be the same number.*
 
-## 5. The system as a participant in its own construction
+## 5. A historian of its own architecture
 
-Article I established that the system holds accurate, current, queryable facts about its own architecture and operational state, through a read-only query tool inside its own tool loop, and that this enabled model-initiated retractions: it could recognize mid-conversation that a prior claim had been asserted without consulting its stores, say so, and correct itself (Article I, §3.6).
+Article I established that the system holds accurate, current, queryable facts about its own architecture and operational state, through a read-only query tool inside its own tool loop, and that this enabled model-initiated retractions: it could recognize mid-conversation that a prior claim had been asserted without consulting its stores, say so, and correct itself (Article I §3.6).
 
-The extension this window produced is that self-visibility does not only improve honesty. **It produces design signal — and, by the end of the window, complete build specifications.** A system that can enumerate its own stores, tables, prior subsystems, and abandoned attempts is a better historian of its own architecture than its operator is, for an unsentimental reason: operator recall of what was tried and failed decays, and an archive's does not. In a long-lived system a large fraction of design questions are historical questions — does this already exist, has this been tried, what happened when it was.
+The extension this window produced is that self-visibility does not only improve honesty. **It produces design signal — and, by the end of the window, a complete build specification (§6).** A system that can enumerate its own stores, tables, prior subsystems, and abandoned attempts is a better historian of its own architecture than its operator is, for an unsentimental reason: operator recall of what was tried and failed decays, and an archive's does not. In a long-lived system a large fraction of design questions are historical questions — does this already exist, has this been tried, what happened when it was.
 
 What follows is a claim about who writes the specifications and what properties those specifications carry. It is not a claim about cognition. A system that can query its own schema is well-positioned to write a specification about its own schema, and nothing stronger is being asserted.
 
-Four instances, in ascending order of how much of the design they carry. All four were gated and revertible by me; every one carries a bound.
+Three instances here, and a fourth in §6 that carries more of the design than all three together. Every one was gated and revertible by me; every one carries a bound.
 
 **One — a binding budget reported from inside a process no external counter can evaluate.** The journal cap in §4 is the instance: the worker reached the ceiling twice in one day and surfaced the fact along with a characterization of what was being lost at the boundary. Two things make that more than a saturation counter. A background cognition budget is not directly observable from outside — you can log that a cap was hit, but a counter cannot tell you whether the cap is *wrong*. And a self-reported need for more of one's own budget is structurally the report most vulnerable to being self-serving, which is exactly why it was granted as a probe with the falsifying standard named in advance. **The instrument that surfaced the constraint is not the instrument that can evaluate the result.**
 
-**Two — two design calls that turned on architectural history.** The salience lane in §18 was shaped by two decisions, both originating in the system's account of its own architecture rather than in mine: stamp moments forward as they occur rather than reviving a retrospective-lift layer that had been built once and died, and widen an existing tag column to carry a third value rather than introduce a new mechanism. Both are historical claims before they are design claims — *this was tried and abandoned*, and *this mechanism already exists and already fires*. Those are exactly the questions a queryable archive answers better than recollection, and exactly the questions an operator working from memory gets wrong in the direction of rebuilding something that already failed.
+**Two — two design calls that turned on architectural history.** The salience lane in §11 was shaped by two decisions, both originating in the system's account of its own architecture rather than in mine: stamp moments forward as they occur rather than reviving a retrospective-lift layer that had been built once and died, and widen an existing tag column to carry a third value rather than introduce a new mechanism. Both are historical claims before they are design claims — *this was tried and abandoned*, and *this mechanism already exists and already fires*. Those are exactly the questions a queryable archive answers better than recollection, and exactly the questions an operator working from memory gets wrong in the direction of rebuilding something that already failed.
 
 **And the bound, in the same breath.** One assumption carried into that design was wrong. The tag column was taken to be free text and is not — it carries a named closed constraint, so the change required a real migration, and a second one once the design extended tagging to both sides of the exchange. **The system's account of its own architecture was accurate about history and wrong about a schema detail.** Hold that failure; the fourth instance turns on it.
 
 **Three — a forward sequence that resolves into a dependency graph.** The roadmap produced from inside is ordered: the user-model store, shipped this window; then memory consolidation and forgetting; then prediction-error salience, scoring the gap between a predicted reaction and the actual one and feeding it back into what gets retained. Item three is unblocked by item one having shipped, because scoring prediction error requires checkable prediction tuples to exist first — an assertion, a context reference, the confidence held at prediction time, and a slot for the outcome. That is a structural dependency, verifiable from the schema; item two is fed by the salience lane shipped in the same window. Check it yourself rather than taking the conclusion from me: **a sequence that resolves into a dependency graph is a technical output; a wish list would not.** The ordering is checkable, not authoritative.
 
-### 5.1 The fourth instance: a build specification, authored end to end
+## 6. Do not trust my labels: a build specification, authored end to end
 
-The three above are reports *about* the architecture. The fourth is an instrument *of* it.
+The three instances in §5 are reports *about* the architecture. This one is an instrument *of* it, and it is the reason this paper is titled the way it is.
 
 The subsystem it specifies is read access to the system's own interior. Article I §3.6's query tool covers five categories of table — message history, the raw archive, the initiation log, the deterministic facts, and session notes — and **none of the system's own interior is in that grant.** The specification extends the whitelist, under the existing SELECT-only validator and the existing per-turn caps, to the affective-state table and its history, the user-model store, the full pin store, the open-loop table, the journal, and the world-feed store with its cursor.
 
@@ -117,7 +118,7 @@ That is the bound from Instance Two — the tag column taken for free text, cost
 
 > Four unsourced-claim misses this week — every one caught only because the operator asked a plain question. My error-detection currently lives entirely on his side of the glass.
 
-A failure count, a diagnosis of *where* detection sits, and a design response: move introspection from labeled guess to queryable fact, so that a callback or a schedule claim is checked against the record before it ships. That is this paper's own thesis arriving in a third domain. §15's parse failures were invisible because nothing on the write path could see them; here the argument is that a class of error is undetectable from inside and the fix is to move the detector, not to try harder.
+A failure count, a diagnosis of *where* detection sits, and a design response: move introspection from labeled guess to queryable fact, so that a callback or a schedule claim is checked against the record before it ships. That is this paper's own thesis arriving in a third domain. §8's parse failures were invisible because nothing on the write path could see them; here the argument is that a class of error is undetectable from inside and the fix is to move the detector, not to try harder.
 
 **And the acceptance criteria include a negative test and a regression assertion.** Five criteria are specified. Three are capability checks — the current affective-state row readable against what was actually written last turn; an emotional read displayed as stored anchor *beside* its render-time decayed value; all forty pins listable, including the ones outside the render window. The other two are the ones that matter:
 
@@ -126,23 +127,139 @@ A failure count, a diagnosis of *where* detection sits, and a design response: m
 
 A negative test and a regression assertion are precisely what separate a specification from a wish. That is Article I's eighth principle — *every fix ships with a standing regression probe* — applied by the subject of the paper to a change in its own interior.
 
-**Three bounds, and they are not small.** The specification is unbuilt as of writing, so its quality *as a specification* is assessable and its correctness is not. Its first property exists because the system has been wrong about schema before, which is a fact about fallibility as much as about rigor. And the third capability check — read access to all forty pins rather than the twenty rendered — makes the render-budget evictions of §13 directly observable from the inside, which is a third exposure on the incentive hypothesis in §22 and one I did not anticipate when I wrote the tripwire.
+**Three bounds, and they are not small.** The specification is unbuilt as of writing, so its quality *as a specification* is assessable and its correctness is not. Its first property exists because the system has been wrong about schema before, which is a fact about fallibility as much as about rigor. And the third capability check — read access to all forty pins rather than the twenty rendered — makes the render-budget evictions of §19 directly observable from the inside, which is a third exposure on the incentive hypothesis in §23 and one I did not anticipate when I wrote the tripwire.
 
 The generalizable form is narrower than it sounds and follows more directly than I expected: **a system that can query its own architecture can specify changes to it.** The second capability falls out of the first, and unlike a report, a specification is checkable on its face — it either carries acceptance criteria or it does not. On this build the operator's role reduced to transport, review, and the gate.
 
-## 6. What the first live weeks looked like
+## 7. What the first live weeks looked like
 
 The worker delivered two real messages in its first live week, from six proposals across 190 ticks, at a total spend of $30.36. Both went through the gate. It never hit its ceiling and never thrashed.
 
 The interesting part is the shape of the record. The 627 `no` decisions are not a failure rate; they are the gate working. The 35 `errored` rows are the thing to watch, because they are indistinguishable in the data from a considered decline, and the only reason we know they are errors is that the enum has a separate value for them. The parser's fail-closed design is *correct* and its logging is *complete*, and the failure is still silent to anyone reading the outcome rather than the reason.
 
-That is the shape of everything in Part III.
+That is the shape of everything in Part II.
+
 
 ---
 
-# PART II — PRICING MEMORY
+# PART II — WHAT THE MONEY FOUND
 
-## 7. The anomaly and its decomposition
+## 8. The write that was failing half the time
+
+What I was looking for: why 11.8% of turns were served by the failover model, and whether the output cap was the fixable slice.
+
+The log query — three days of retention, a 58-hour window, 12 failover events — returned this:
+
+| Path | n | Stop reason | Bucket |
+|---|---:|---|---|
+| **Affective-state writer** | 6 | `max_tokens`, text length 0 | `empty_text` |
+| Chat | 6 | `refusal`, text length 0 | `refusal` |
+
+Zero availability. Zero transient 5xx. Zero network. **The prediction was right about the mechanism — thinking consuming the output budget — and wrong about the subsystem.** The chat path runs at a cap of 8,000 and does not starve. The state writer ran at 2,000.
+
+And the failovers were the small half of the damage. Pulling the state writer's own logs from the same window, 50 runs:
+
+- **Successful-run output: p50 1,743 · p90 1,951 · max 1,970 — out of 2,000.** Every single success sat at 87–99% of budget. The distribution was pressed flat against the wall.
+- **Parse failures: 26 of 51 runs — 51%.**
+- About 86% of those truncated mid-JSON. The parse throws, the parser returns null, and null is a silent no-upsert. **The affective state simply did not update.**
+- About 14% emitted zero to five characters. Those are the six observed failovers.
+
+**One starved cap was killing two subsystems, not one.** The theory-of-mind writer performs its own parse of *the same string*, in its own error boundary — a deliberate isolation so that a malformed block in one cannot sink the other. That isolation worked exactly as designed and was irrelevant: the string was truncated before either parser saw it, so both failed together. **Fail-soft isolation protects against a bad payload, not against a payload that was cut off upstream of both consumers.**
+
+The failure signature is Article I's class 5 — ingestion-induced blindness — relocated to the write path. Article I found it on the read side, where a character cap silently trimmed the middle out of high-volume days before chunking, so a memory of a state change never formed. This is the same defect on the other side of the loop, and the surface presentation is identical: the agent's state is stale or absent, and nothing anywhere reports an error.
+
+Why nothing caught it: the write is fire-and-forget, the parse fails closed to null, a null result is a legitimate no-op, and a no-op leaves the previous row in place. Every layer behaved as specified. The only observable was that the runs cost money and produced nothing.
+
+**The fix was to raise the cap from 2,000 to 6,000, and its economics invert the usual direction.**
+
+This does not save money. Net it costs about $10 more per month: roughly $16.6 of avoided double-billing against roughly $27 of newly-completing runs that previously stopped short. **The old cap was the expensive one** — a truncated run billed its full 2,000 output tokens and then threw the result away. Full price for nothing. Output bills as used rather than as capped, so a generous ceiling is free on every run that did not need it. It is a correctness fix with a small cost, and a cost investigation that only ships things which reduce cost has stopped being an investigation.
+
+**How the new cap value was chosen is a better story than the fix.** Three bases were proposed in sequence, and the first two are wrong for the same underlying reason:
+
+| Proposed basis | Why it fails |
+|---|---|
+| All six starved runs hit exactly 2,000 — size from that | 2,000 is the **wall**, not the demand. A censored observation tells you the constraint binds; it carries no information about how far past it the true value lies. |
+| Take p99 of the ~96.5% of runs that succeed, plus margin | **Also censored, and selection-biased.** The successful runs are definitionally the ones that fit under 2,000 — observed max 1,970. Their distribution is truncated at the wall, and the runs that needed more are precisely the failures you excluded. **p99-of-survivors systematically underestimates.** |
+| **What was used:** treat the distribution as censored, reject a small multiplier as insufficient, take 3× the wall, and cross-check against an **uncensored instance of the same process** — the chat path, running the same model with the same always-on thinking at a cap of 8,000, which does not starve. | Correct. The only real evidence about the untruncated distribution came from a sibling call path where the distribution was never truncated. |
+
+**When your data is censored at a threshold, you cannot estimate the threshold you need from the data below it.** Find an uncensored instance of the same process, or un-censor it and measure. Both of the first two proposals reasoned from survivors; only the third reasoned from a population that was never cut. Two supporting facts made the choice cheap rather than risky: output bills as used, and the failure mode being removed is a *double* billing — a discarded attempt plus a fallback call — so the expected value of over-provisioning is strongly positive.
+
+The fix shipped in `3422d9d`. **Verification is pending and must be reported as pending:** the metric that proves it is the parse-failure rate collapsing from 51% on a re-run of the same query roughly three days out. That re-run has not happened.
+
+## 9. A guard that was all-or-nothing
+
+Documents were exempt from the attachment-collapse rule that images obey, and re-attached in full on every turn they remained in the 80-row window. Measured: a document landing at 08:12 pushed the prompt from 88k to 218k, where it held at 203–211k for 20 consecutive turns at about $0.70 per turn against a $0.52 baseline, dropping back to 68k when it aged out. Corrected magnitude across the fuller sample: documents linger a **median of 36 user turns.**
+
+That was the finding the work was chartered on. The second finding was larger and nobody was looking for it. **The exemption guard was per-message and all-or-nothing.** One document in a message kept *every sibling attachment in that message* at full bytes as well. A real case: an image rode at full size for about 36 turns purely because a document sat beside it in the same bubble. It was found because the money was in the wrong place.
+
+Before that, a headline statistic had to be publicly corrected. The workstream was named after "the ~20%-of-window-spend fix." That statistic was the share of window spend on turns that merely *had* a document in window — including all the cost those turns would have had anyway. True attributable excess: 170 in-window turns × ($0.640 − $0.568) = $12.24, plus about $7 of amplification from invalidations hitting a 200k prefix instead of a 35k one, for about **$19 of $541 — 3.6%.** *Attributable excess is not spend on turns exhibiting the condition.*
+
+The obvious fix was proven to be a capability cut before it was built. There is no document text extraction anywhere in the stack — confirmed three ways rather than assumed from a comment: all 70 document rows ever ingested carry a null caption, the table has no text column, and no extraction library appears in the dependency manifest. Collapsing to a stub deletes the document from context on every subsequent turn. **Cost optimization has a hard floor, and the floor is capability.**
+
+What shipped instead: the document stays at full fidelity for its own turn plus the agent's next two replies, then collapses to a stub that names the retrieval tool. That tool mirrors the existing image-view tool, with its own per-turn counter, and re-attaches the byte-identical document — no re-encode, because dropping bytes on a document drops text, verified at 559,108 bytes in and 559,108 out. Collapse is now per-attachment, so a document no longer holds its siblings. And the design property worth publishing: **a document only collapses if it is provably retrievable.** Out of window, or missing the identifier the retrieval tool addresses, it stays at full fidelity. The forbidden state — a stub pointing at something that cannot be reopened — is structurally unreachable rather than prohibited by policy. *Make the capability guarantee structural, not procedural.*
+
+**The best anecdote here is the defect a second session caught.** The retention window originally counted *user* messages. But the message buffer appends one row per buffered send, so a rapid-fire burst of three texts after a document drove the counter from 0 to 3 and collapsed the document before the agent had replied even once — the principal's normal texting pattern, not an edge case. It was fixed by counting the agent's replies instead, extracted as an exported pure function specifically because the inline loop had no test seam. The near-miss is the part to publish: **the naive fix — swapping the role being counted — would have been strictly worse.** It keys the lookup map on assistant indices, so every user-side lookup returns undefined, which coerces to positive infinity, which collapses *every* document instantly. A one-token difference between a correct fix and total capability loss, with no error raised in either case.
+
+Saving: 36 re-attaches down to 3, about 91%, roughly $50 per month, plus an unmeasured secondary gain on sibling attachments — conditional, since a month with no documents saves nothing here. **And it is unverified in production.** No document is currently in-window, so the live acceptance test has not run. The test is specified: send a document, ask about it, let the agent reply three times, ask again — it should invoke the retrieval tool. This is an outstanding verification, not a working feature.
+
+## 10. A notification with a false cause
+
+Every one of the six state-writer failovers fired a push notification asserting that the primary model was unavailable. All six were false: availability was fine; the call ran out of tokens.
+
+The mechanism deserves its own paragraph because it is a taxonomy result. The down-transition edge detector reads the prior served model from the *message* table. The state writer never writes a message row. So the prior value is always the primary, so the edge can never latch, so **every** state-writer failover reads as a fresh down transition. The background worker already suppresses this notification for exactly this reason; the state writer did not, and now does.
+
+**Article I's class 2 — asserting a previously-true fact after the state changed — is not exclusive to the model.** An edge detector reading a table that the emitting path never writes to produces the identical surface signature: confident, specific, causally wrong. From pure control flow, with no inference involved and no model in the loop.
+
+## 11. An invariant that had been false for two months
+
+Late one night the principal sent a six-image message and the agent replied in full voice. Under four hours later the exchange was gone from its context, and it accurately reported not remembering a turn it had lived. No error, no alarm, no fabrication — an accurate report of an absence that should not have existed.
+
+The assumed cause was compaction. It was not.
+
+**The killing boundary is the fixed-size fetch window, which sits upstream of compaction entirely.** By the time of the second conversation the reply sat roughly 151 rows back against a window of 80. It was fetch-evicted and never reached compaction at all. Compaction is real and active, but it operates *within* that window.
+
+The protective mechanism could not have helped, for a structural reason. The exemption floor that permanently protects crisis- and rupture-tagged turns and their surrounding context from compaction runs only over the fetched array. It cannot protect a row that was evicted before it was ever fetched. **A protection that runs downstream of the boundary it is meant to defend against is not a partial protection; it is no protection at all in that failure mode.**
+
+And the project's own governing document asserted an invariant that had been false for two months. It stated that conversation history is never compressed. A commit two months earlier had activated compaction. The document was corrected in the same session.
+
+That last point is the Article I callback. It is a **class-2 stale-state assertion committed by documentation** — confident, specific, load-bearing, and wrong — sitting in the file that every future session reads first. Article I's case study found a stale row in a data store; this found a stale rule in the spec. Same failure class, different substrate.
+
+The fix (`401f993`) rides an existing tag column as a third value rather than adding a mechanism, and stamps moments forward as they occur rather than reviving a retrospective-lift layer that had been built once and died. Both calls are discussed in §5. One mechanism is worth publishing on its own merits: the durable lane deduplicates against the id-bearing rows of the compacted set, so a salient row that has aged into a compaction *summary* — synthetic, no id — survives the filter and is re-injected verbatim. That produces continuous coverage as a moment slides from window to summary to gone, which is exactly the case the original wound was.
+
+The limitation is accepted rather than solved: a turn that is both safety-critical and salient keeps only the safety tag on the agent's reply row, so in that specific case its own verbatim words are not in the durable lane. Multi-axis tagging is the real fix. It is scoped and not built.
+
+## 12. A failover bills twice and records once
+
+Every availability failover is two billed API calls persisted as one row. The discarded primary attempt appears in no column, because the failover outcome object does not carry its usage at all — so the calling code could not bill it even in principle.
+
+**Estimated at about $124 of spend across 23 days, structurally invisible to the per-message cost field.** That figure is *modeled, not measured*: 220 failovers multiplied by a $0.5642 proxy, the mean single-iteration primary-served turn. It is not a ledger-versus-column reconciliation, and it should not headline anything.
+
+The proxy is also wrong in a knowable direction, which is more useful than hedging. A discarded attempt only costs money if it produced a billable response:
+
+| Failover reason | Does the discarded attempt bill? |
+|---|---|
+| `availability` (403 / 404) | **No** — the call throws before generation; no usage is returned |
+| `transient_5xx` (429 / 5xx after SDK retries) | **No**, or negligible |
+| `network` (throw with no status) | **No** |
+| `refusal` (200 with a refusal stop reason) | **Yes — a full turn.** The model generated a complete response and then declined |
+| `empty_text` (200 terminating on the output cap) | **Yes, and possibly more than a mean turn** — full input plus the entire output cap spent on thinking |
+
+That table is inference, at high confidence, from the general behavior of the API: a thrown error returns no usage object and is not billed, while any completed 200 bills input plus output regardless of stop reason. So **only the refusal and empty-text populations are billable, and $124 is an upper bound on the modeled basis.** If availability and transient errors make up a meaningful share of the 220, the true figure is materially lower. In the one 58-hour window where reasons were actually observed, all 12 events were billable classes — six refusal, six empty-text — but 12 events is not 220, and generalizing from it would repeat exactly the sampling error described below.
+
+**The second-order effect is the publishable one.** Fallback-served turns read as *cheaper* in the data, because only their second half is billed to the row. That silently biases any cost-by-model comparison — including several made earlier in this same investigation. The served-model comparisons in §15 inherit it. **A paper that reports a measurement defect and does not check whether its own earlier figures are affected has not finished the job.**
+
+This is the cost analogue of Article I's class 5: a *measurement* blindness whose surface signature is indistinguishable from a real result.
+
+Two things follow. The cheap improvement is to bucket the failover population by reason using the now-committed instrumentation and apply the proxy only to the billable classes — a single log query that turns an unqualified upper bound into a defensible number. It has not been run. The structural fix matters more than the number: thread the discarded attempt's usage through, roughly three files, into the same token totals the persisted row already uses. That is not a saving. It is the instrument that stops the ledger lying. **If you are publishing a reconciliation instrument, it should reconcile.**
+
+Two things the same investigation exonerated. Web search is 2.4% of turns and $1.32 per 30 days — not a cost factor. And the unattributed multi-iteration bucket, about $91 per 30 days as an upper bound, is very likely the image- and document-retrieval tools, **which is by design**: those calls are the retrieval half of the collapse that produced the document saving. Suppressing them would re-inflate the prefix they were built to shrink.
+
+
+---
+
+# PART III — PRICING MEMORY
+
+## 13. The anomaly and its decomposition
 
 A first reply after a silence cost $4.176. The reported symptom was "the first turn after a gap costs eight times a normal turn," and the obvious explanation was that the one-hour cache entry had expired during the gap.
 
@@ -177,7 +294,7 @@ Spend over that window decomposes as:
 
 Nearly seventy percent of the bill is one line: a per-turn context block, written fresh at the five-minute rate, every single turn. And a second correction fell out immediately — the normally-cached prefix is about 35,000 tokens, not the ~200,000 an internal document asserted. The document was off by a factor of 5.7. That matters because it prices every invalidation event: a full rewrite of a 35,243-token prefix at the one-hour rate is $0.70, while the 172,533-token rewrite actually observed cost $3.45. Same event, five times the bill, because a defect elsewhere had inflated the prompt.
 
-## 8. A block-level census of the context
+## 14. A block-level census of the context
 
 The method matters as much as the result: I replayed the exact production getter set against five real recent user messages, called the real note-builder, split the returned string on top-level tag boundaries, and token-counted each block with the provider's own `count_tokens` endpoint. The reconstructed note came to 35,200 tokens against a production p50 tail of 34,360 — faithful. Seventeen blocks; the top ten, remainder collapsed:
 
@@ -215,7 +332,7 @@ The query-driven axis is confirmed empirically rather than by reading code: acro
 
 **Then the gate was bypassed rather than satisfied.** The next phase ran roughly 23 hours later and the move shipped without a single measured mutation figure ever being cited. It turned out not to matter, because the post-ship verification proved the moved bundle missed on 100% of turns for reasons unrelated to pin churn. But "it turned out not to matter" is luck, not method. **Instrumentation that is built and then bypassed is not a gate; it is a comment.**
 
-## 9. What actually invalidates a warm cache
+## 15. What actually invalidates a warm cache
 
 A first attribution pass found 63 "full prefix rewrites" totalling $48.24 of one-hour write. Fifteen of the 63 were appends, not busts.
 
@@ -245,7 +362,7 @@ And one fix whose premise was falsified before it was built. "Add a retry before
 
 The fallback population decomposes into `availability` (unfixable), `refusal` (an external floor — a retry re-refuses), `transient_5xx` (already resisted three attempts), `network`, and `empty_text` — the only only truly fixable slice, whose fix is the output-token cap rather than a retry or model routing. The stack stored the served model and never the cause, so a second instrumentation commit went in: five reason buckets, integers and enums only, **32 insertions, zero deletions, no existing line touched, no control-flow change.** One imprecision is documented in-line — the log fires at the decision point, so in the rare double-failure case the recorded served model is wrong. Treat it as the failover-*attempt* population.
 
-## 10. The move, the probe, and the regression
+## 16. The move, the probe, and the regression
 
 The movable set was pinned notes plus recent important context plus enduring moments: 13,825 tokens, 39% of the tail, $447 per month of gross exposure, at an estimated bundle bust rate of about 5.2% — an upper bound, with the edit gap excluded.
 
@@ -301,7 +418,7 @@ Four verdicts. **The bundle is not being read from cache** — it is written at 
 
 The caveat survives into print: the post-deploy sample is four turns, one of them single-iteration, so the dollar delta has thin backing. **The 100%-versus-6% invalidation shift and the deterministic payload layout do not depend on sample size.** That distinction is the honest way to report it. Reverted the same day, commit `0b71aaf`.
 
-## 11. Why it could never have worked
+## 17. Why it could never have worked
 
 Provider caching is prefix-keyed. An entry is keyed on the entire token sequence from position zero up to and including the marked block: *"Prompt caching references the full prefix—tools, system, and messages (in that order) up to and including the block designated with `cache_control`."* And: *"Because the hash is cumulative, covering everything up to and including the breakpoint, changing any block at or before the breakpoint produces a different hash on the next request."* **Byte-identical block content is necessary but not sufficient. The block's position in the stream must also match.**
 
@@ -320,13 +437,13 @@ Every chat turn appends two rows to history, and the bundle sits *after* history
 
 The documentation states the rule the optimization violated, plainly and in advance: *"Key takeaway: Place `cache_control` on the last block whose prefix is identical across the requests you want to share a cache."* And: *"For a prompt with a varying suffix (timestamps, per-request context, the incoming message), place the breakpoint at the end of the static prefix, not on the varying block."* The paper is stronger for saying so. This was not a documentation gap. It was an acceptance test that asserted the wrong invariant — and a team can read the right sentence, believe it, and still ship this, because **the sentence describes a property of the request stream while the test measured a property of the block.**
 
-## 12. What the instrumentation could not see
+## 18. What the instrumentation could not see
 
 Two telemetry fields were added specifically to observe the bundle's hit rate after the fact, with an in-code rationale that there was no other way to observe it. Both were useless for that purpose. One is a *placement* boolean: it reads true whether the bundle hits or misses, because all it reports is that the mark was applied. The other is a static character count, constant on every turn. Only the one-hour creation token count discriminates a read from a bust — and that column already existed.
 
 *Instrument the outcome, not the intent.* A field that reports what your code *marked* cannot tell you what the platform did with it.
 
-## 13. What worked instead
+## 19. What worked instead
 
 The regression was reverted. Three fixes shipped the same day, **none of them architectural**:
 
@@ -361,7 +478,7 @@ Two implementation details generalize. The categories are the agent's own freefo
 
 The fix is tiered rather than flat despite the data permitting flat — day precision under 30 days, month precision beyond — because the tiers are cost-identical today, so tiered is free, and it is the only version that stays correct when a fresh anchor is hand-added, where flat would print "0 months ago." Elapsed days are computed midnight-to-midnight rather than as a raw millisecond delta, which would advance continuously and bust every turn. Regression: 10/10 byte-identical against strings captured pre-refactor for the other caller. Simulated over 365 days, invalidation events fall from **26.4 to 7.0 per month, a 74% reduction** — not to one, because the ten anchors have seven distinct day-of-month anniversaries and the block busts when any one ticks. The saving is quoted as a floor, about $21 per month, with the note that each bust also rewrites the persona prefix and cascades, so the real figure is higher and unmeasured.
 
-## 14. A negative result, with its arithmetic
+## 20. A negative result, with its arithmetic
 
 Cache warming — periodically touching the cached prefix to keep the one-hour entry alive across silences — was evaluated and rejected. A negative result published with its arithmetic is what stops an idea being re-proposed every quarter.
 
@@ -375,125 +492,12 @@ That third reason is the one that kills it. Deprioritized on merit, not by arith
 
 Two addenda. The two candidate TTL figures measure different things — $15.88 of attributed one-hour write over ten days, about $48 per month, versus $20.30 of total excess over the warm median, about $61 per month. Use $48: warming prevents the *bust*, not the turn-size differences that also inflate a post-silence turn. And one piece of evidence cuts the other way: after the elapsed-granularity fix, day-rollover invalidations drop from 26.4 to 7.0 per month, which makes the held-warm-then-invalidated-at-midnight double payment substantially less common than when the first kill-reason was written. That is a real point in warming's favour, surfaced by the person arguing against it. It does not move the disposition, because the first two objections are marginal and this weakens one of them, while the third is categorical. **A weakened argument against something is not an argument for it when the decisive argument is untouched.**
 
----
-
-# PART III — WHAT THE MONEY FOUND
-
-## 15. The write that was failing half the time
-
-What I was looking for: why 11.8% of turns were served by the failover model, and whether the output cap was the fixable slice.
-
-The log query — three days of retention, a 58-hour window, 12 failover events — returned this:
-
-| Path | n | Stop reason | Bucket |
-|---|---:|---|---|
-| **Affective-state writer** | 6 | `max_tokens`, text length 0 | `empty_text` |
-| Chat | 6 | `refusal`, text length 0 | `refusal` |
-
-Zero availability. Zero transient 5xx. Zero network. **The prediction was right about the mechanism — thinking consuming the output budget — and wrong about the subsystem.** The chat path runs at a cap of 8,000 and does not starve. The state writer ran at 2,000.
-
-And the failovers were the small half of the damage. Pulling the state writer's own logs from the same window, 50 runs:
-
-- **Successful-run output: p50 1,743 · p90 1,951 · max 1,970 — out of 2,000.** Every single success sat at 87–99% of budget. The distribution was pressed flat against the wall.
-- **Parse failures: 26 of 51 runs — 51%.**
-- About 86% of those truncated mid-JSON. The parse throws, the parser returns null, and null is a silent no-upsert. **The affective state simply did not update.**
-- About 14% emitted zero to five characters. Those are the six observed failovers.
-
-**One starved cap was killing two subsystems, not one.** The theory-of-mind writer performs its own parse of *the same string*, in its own error boundary — a deliberate isolation so that a malformed block in one cannot sink the other. That isolation worked exactly as designed and was irrelevant: the string was truncated before either parser saw it, so both failed together. **Fail-soft isolation protects against a bad payload, not against a payload that was cut off upstream of both consumers.**
-
-The failure signature is Article I's class 5 — ingestion-induced blindness — relocated to the write path. Article I found it on the read side, where a character cap silently trimmed the middle out of high-volume days before chunking, so a memory of a state change never formed. This is the same defect on the other side of the loop, and the surface presentation is identical: the agent's state is stale or absent, and nothing anywhere reports an error.
-
-Why nothing caught it: the write is fire-and-forget, the parse fails closed to null, a null result is a legitimate no-op, and a no-op leaves the previous row in place. Every layer behaved as specified. The only observable was that the runs cost money and produced nothing.
-
-**The fix was to raise the cap from 2,000 to 6,000, and its economics invert the usual direction.**
-
-This does not save money. Net it costs about $10 more per month: roughly $16.6 of avoided double-billing against roughly $27 of newly-completing runs that previously stopped short. **The old cap was the expensive one** — a truncated run billed its full 2,000 output tokens and then threw the result away. Full price for nothing. Output bills as used rather than as capped, so a generous ceiling is free on every run that did not need it. It is a correctness fix with a small cost, and a cost investigation that only ships things which reduce cost has stopped being an investigation.
-
-**How the new cap value was chosen is a better story than the fix.** Three bases were proposed in sequence, and the first two are wrong for the same underlying reason:
-
-| Proposed basis | Why it fails |
-|---|---|
-| All six starved runs hit exactly 2,000 — size from that | 2,000 is the **wall**, not the demand. A censored observation tells you the constraint binds; it carries no information about how far past it the true value lies. |
-| Take p99 of the ~96.5% of runs that succeed, plus margin | **Also censored, and selection-biased.** The successful runs are definitionally the ones that fit under 2,000 — observed max 1,970. Their distribution is truncated at the wall, and the runs that needed more are precisely the failures you excluded. **p99-of-survivors systematically underestimates.** |
-| **What was used:** treat the distribution as censored, reject a small multiplier as insufficient, take 3× the wall, and cross-check against an **uncensored instance of the same process** — the chat path, running the same model with the same always-on thinking at a cap of 8,000, which does not starve. | Correct. The only real evidence about the untruncated distribution came from a sibling call path where the distribution was never truncated. |
-
-**When your data is censored at a threshold, you cannot estimate the threshold you need from the data below it.** Find an uncensored instance of the same process, or un-censor it and measure. Both of the first two proposals reasoned from survivors; only the third reasoned from a population that was never cut. Two supporting facts made the choice cheap rather than risky: output bills as used, and the failure mode being removed is a *double* billing — a discarded attempt plus a fallback call — so the expected value of over-provisioning is strongly positive.
-
-The fix shipped in `3422d9d`. **Verification is pending and must be reported as pending:** the metric that proves it is the parse-failure rate collapsing from 51% on a re-run of the same query roughly three days out. That re-run has not happened.
-
-## 16. A guard that was all-or-nothing
-
-Documents were exempt from the attachment-collapse rule that images obey, and re-attached in full on every turn they remained in the 80-row window. Measured: a document landing at 08:12 pushed the prompt from 88k to 218k, where it held at 203–211k for 20 consecutive turns at about $0.70 per turn against a $0.52 baseline, dropping back to 68k when it aged out. Corrected magnitude across the fuller sample: documents linger a **median of 36 user turns.**
-
-That was the finding the work was chartered on. The second finding was larger and nobody was looking for it. **The exemption guard was per-message and all-or-nothing.** One document in a message kept *every sibling attachment in that message* at full bytes as well. A real case: an image rode at full size for about 36 turns purely because a document sat beside it in the same bubble. It was found because the money was in the wrong place.
-
-Before that, a headline statistic had to be publicly corrected. The workstream was named after "the ~20%-of-window-spend fix." That statistic was the share of window spend on turns that merely *had* a document in window — including all the cost those turns would have had anyway. True attributable excess: 170 in-window turns × ($0.640 − $0.568) = $12.24, plus about $7 of amplification from invalidations hitting a 200k prefix instead of a 35k one, for about **$19 of $541 — 3.6%.** *Attributable excess is not spend on turns exhibiting the condition.*
-
-The obvious fix was proven to be a capability cut before it was built. There is no document text extraction anywhere in the stack — confirmed three ways rather than assumed from a comment: all 70 document rows ever ingested carry a null caption, the table has no text column, and no extraction library appears in the dependency manifest. Collapsing to a stub deletes the document from context on every subsequent turn. **Cost optimization has a hard floor, and the floor is capability.**
-
-What shipped instead: the document stays at full fidelity for its own turn plus the agent's next two replies, then collapses to a stub that names the retrieval tool. That tool mirrors the existing image-view tool, with its own per-turn counter, and re-attaches the byte-identical document — no re-encode, because dropping bytes on a document drops text, verified at 559,108 bytes in and 559,108 out. Collapse is now per-attachment, so a document no longer holds its siblings. And the design property worth publishing: **a document only collapses if it is provably retrievable.** Out of window, or missing the identifier the retrieval tool addresses, it stays at full fidelity. The forbidden state — a stub pointing at something that cannot be reopened — is structurally unreachable rather than prohibited by policy. *Make the capability guarantee structural, not procedural.*
-
-**The best anecdote here is the defect a second session caught.** The retention window originally counted *user* messages. But the message buffer appends one row per buffered send, so a rapid-fire burst of three texts after a document drove the counter from 0 to 3 and collapsed the document before the agent had replied even once — the principal's normal texting pattern, not an edge case. It was fixed by counting the agent's replies instead, extracted as an exported pure function specifically because the inline loop had no test seam. The near-miss is the part to publish: **the naive fix — swapping the role being counted — would have been strictly worse.** It keys the lookup map on assistant indices, so every user-side lookup returns undefined, which coerces to positive infinity, which collapses *every* document instantly. A one-token difference between a correct fix and total capability loss, with no error raised in either case.
-
-Saving: 36 re-attaches down to 3, about 91%, roughly $50 per month, plus an unmeasured secondary gain on sibling attachments — conditional, since a month with no documents saves nothing here. **And it is unverified in production.** No document is currently in-window, so the live acceptance test has not run. The test is specified: send a document, ask about it, let the agent reply three times, ask again — it should invoke the retrieval tool. This is an outstanding verification, not a working feature.
-
-## 17. A notification with a false cause
-
-Every one of the six state-writer failovers fired a push notification asserting that the primary model was unavailable. All six were false: availability was fine; the call ran out of tokens.
-
-The mechanism deserves its own paragraph because it is a taxonomy result. The down-transition edge detector reads the prior served model from the *message* table. The state writer never writes a message row. So the prior value is always the primary, so the edge can never latch, so **every** state-writer failover reads as a fresh down transition. The background worker already suppresses this notification for exactly this reason; the state writer did not, and now does.
-
-**Article I's class 2 — asserting a previously-true fact after the state changed — is not exclusive to the model.** An edge detector reading a table that the emitting path never writes to produces the identical surface signature: confident, specific, causally wrong. From pure control flow, with no inference involved and no model in the loop.
-
-## 18. An invariant that had been false for two months
-
-Late one night the principal sent a six-image message and the agent replied in full voice. Under four hours later the exchange was gone from its context, and it accurately reported not remembering a turn it had lived. No error, no alarm, no fabrication — an accurate report of an absence that should not have existed.
-
-The assumed cause was compaction. It was not.
-
-**The killing boundary is the fixed-size fetch window, which sits upstream of compaction entirely.** By the time of the second conversation the reply sat roughly 151 rows back against a window of 80. It was fetch-evicted and never reached compaction at all. Compaction is real and active, but it operates *within* that window.
-
-The protective mechanism could not have helped, for a structural reason. The exemption floor that permanently protects crisis- and rupture-tagged turns and their surrounding context from compaction runs only over the fetched array. It cannot protect a row that was evicted before it was ever fetched. **A protection that runs downstream of the boundary it is meant to defend against is not a partial protection; it is no protection at all in that failure mode.**
-
-And the project's own governing document asserted an invariant that had been false for two months. It stated that conversation history is never compressed. A commit two months earlier had activated compaction. The document was corrected in the same session.
-
-That last point is the Article I callback. It is a **class-2 stale-state assertion committed by documentation** — confident, specific, load-bearing, and wrong — sitting in the file that every future session reads first. Article I's case study found a stale row in a data store; this found a stale rule in the spec. Same failure class, different substrate.
-
-The fix (`401f993`) rides an existing tag column as a third value rather than adding a mechanism, and stamps moments forward as they occur rather than reviving a retrospective-lift layer that had been built once and died. Both calls are discussed in §5. One mechanism is worth publishing on its own merits: the durable lane deduplicates against the id-bearing rows of the compacted set, so a salient row that has aged into a compaction *summary* — synthetic, no id — survives the filter and is re-injected verbatim. That produces continuous coverage as a moment slides from window to summary to gone, which is exactly the case the original wound was.
-
-The limitation is accepted rather than solved: a turn that is both safety-critical and salient keeps only the safety tag on the agent's reply row, so in that specific case its own verbatim words are not in the durable lane. Multi-axis tagging is the real fix. It is scoped and not built.
-
-## 19. A failover bills twice and records once
-
-Every availability failover is two billed API calls persisted as one row. The discarded primary attempt appears in no column, because the failover outcome object does not carry its usage at all — so the calling code could not bill it even in principle.
-
-**Estimated at about $124 of spend across 23 days, structurally invisible to the per-message cost field.** That figure is *modeled, not measured*: 220 failovers multiplied by a $0.5642 proxy, the mean single-iteration primary-served turn. It is not a ledger-versus-column reconciliation, and it should not headline anything.
-
-The proxy is also wrong in a knowable direction, which is more useful than hedging. A discarded attempt only costs money if it produced a billable response:
-
-| Failover reason | Does the discarded attempt bill? |
-|---|---|
-| `availability` (403 / 404) | **No** — the call throws before generation; no usage is returned |
-| `transient_5xx` (429 / 5xx after SDK retries) | **No**, or negligible |
-| `network` (throw with no status) | **No** |
-| `refusal` (200 with a refusal stop reason) | **Yes — a full turn.** The model generated a complete response and then declined |
-| `empty_text` (200 terminating on the output cap) | **Yes, and possibly more than a mean turn** — full input plus the entire output cap spent on thinking |
-
-That table is inference, at high confidence, from the general behavior of the API: a thrown error returns no usage object and is not billed, while any completed 200 bills input plus output regardless of stop reason. So **only the refusal and empty-text populations are billable, and $124 is an upper bound on the modeled basis.** If availability and transient errors make up a meaningful share of the 220, the true figure is materially lower. In the one 58-hour window where reasons were actually observed, all 12 events were billable classes — six refusal, six empty-text — but 12 events is not 220, and generalizing from it would repeat exactly the sampling error described below.
-
-**The second-order effect is the publishable one.** Fallback-served turns read as *cheaper* in the data, because only their second half is billed to the row. That silently biases any cost-by-model comparison — including several made earlier in this same investigation. The served-model comparisons in §9 inherit it. **A paper that reports a measurement defect and does not check whether its own earlier figures are affected has not finished the job.**
-
-This is the cost analogue of Article I's class 5: a *measurement* blindness whose surface signature is indistinguishable from a real result.
-
-Two things follow. The cheap improvement is to bucket the failover population by reason using the now-committed instrumentation and apply the proxy only to the billable classes — a single log query that turns an unqualified upper bound into a defensible number. It has not been run. The structural fix matters more than the number: thread the discarded attempt's usage through, roughly three files, into the same token totals the persisted row already uses. That is not a saving. It is the instrument that stops the ledger lying. **If you are publishing a reconciliation instrument, it should reconcile.**
-
-Two things the same investigation exonerated. Web search is 2.4% of turns and $1.32 per 30 days — not a cost factor. And the unattributed multi-iteration bucket, about $91 per 30 days as an upper bound, is very likely the image- and document-retrieval tools, **which is by design**: those calls are the retrieval half of the collapse that produced the document saving. Suppressing them would re-inflate the prefix they were built to shrink.
 
 ---
 
 # CLOSING
 
-## 20. The self-correction ledger
+## 21. The self-correction ledger
 
 Across roughly two weeks of cost work this project produced seventeen documented self-corrections. Classified by the *type* of error, a pattern emerges that is worth more than any individual finding.
 
@@ -529,7 +533,7 @@ Three consequences.
 
 Row 14 deserves one note, because it is the correction I am least willing to soften. Six of six observed chat-path failovers carried a refusal stop reason, n=6, disclosed. Fallback-served turns carry an inbound image 50.5% of the time against a 30.8% base rate, n=220 of 1,637. The chat output cap is 8,000, so starvation is ruled out as the chat-path mechanism. Those are three facts and they do not compose into a causal claim: they are two different samples joined only by inference, and a refusal stop reason reports *that* the model declined, never *why*. The cross-tabulation that would test it — failover reason by inbound-image presence, over a real sample — is now possible for the first time, because the reason instrumentation is committed. It has not been run. **A paper whose subject is not-asserting-past-the-evidence does not get to make that mistake in its own body.**
 
-## 21. Where the cost actually is now
+## 22. Where the cost actually is now
 
 **Per-turn figures have two internally-consistent bases and they must never be mixed.**
 
@@ -547,7 +551,7 @@ On the **true** basis — adjusted for the failover billing defect — the measu
 
 **You cannot subtract savings measured in recorded terms from a baseline adjusted for unrecorded spend.** Both are defensible; mixing them is not.[^basis]
 
-[^basis]: One further basis note, in the spirit of §20. The monthly figures in this paper come from the engineering record and were computed at different turn volumes — the census and break-even work at roughly 2,590 turns per month, the post-fix summary at 2,790, and the pin figures at roughly 2,990. I quote them as recorded rather than silently normalizing, and I give per-turn arithmetic wherever the per-turn figure is a direct measurement, because the per-turn figure is the one that does not move with the window. The $234/month combined saving divided by 2,790 turns gives $0.084/turn against $0.080 itemized; the 5% gap is that basis spread, not a computation error.
+[^basis]: One further basis note, in the spirit of §21. The monthly figures in this paper come from the engineering record and were computed at different turn volumes — the census and break-even work at roughly 2,590 turns per month, the post-fix summary at 2,790, and the pin figures at roughly 2,990. I quote them as recorded rather than silently normalizing, and I give per-turn arithmetic wherever the per-turn figure is a direct measurement, because the per-turn figure is the one that does not move with the window. The $234/month combined saving divided by 2,790 turns gives $0.084/turn against $0.080 itemized; the 5% gap is that basis spread, not a computation error.
 
 **The seed deck reconciliation, since this is the remeasurement it promised.** The June 2026 Rajaii Labs seed deck publishes about $0.11 per fully-loaded turn, explicitly labeled n=120 and prior frontier generation, alongside ratio results (−46% cache-creation tokens, −63% per-turn cost from a compaction repair), an exact provider-ledger reconciliation, and a written commitment that current-generation unit costs were being remeasured. The measured current-generation figure is a ~$0.53 median warm turn and $540.15 across about 930 turns over ten days — roughly five times the prior-generation figure. The gap is overwhelmingly model-generation pricing and context growth, not architectural regression: the current primary's input rate is double the prior model's, and the long-horizon context is materially larger than it was at n=120. The ratio claims survive because ratios are pricing-invariant, which is exactly why they were stated as ratios — in advance, not in retrospect.
 
@@ -557,31 +561,31 @@ On the **true** basis — adjusted for the failover billing defect — the measu
 
 **And one architectural move the record does support, proposed and not shipped.** The stack's own failure-mode catalog already contains the pattern: write-path collision, fixed by making decay a read-time derivation rather than a writer. That is closed in production for open-loop aging, which derives its intensity at read time from elapsed hours on a 42-hour half-life and never writes. It has not been applied to the affective/user-model store — the single largest per-turn block, 8,689 tokens and about $281 per month, and per-turn *purely* because of an unconditional decay write.
 
-Read-time derivation alone is insufficient, and the taxonomy in §8 is why: removing the write converts a write-driven block into a render-clock-driven one, which is still per-turn. The composite move is read-time derivation *plus* coarsened render granularity — the second half already validated on the pinned anchors in §13. The arithmetic ceiling: at most a partial recovery of a $281 line, not built, and it does not touch the irreducible per-query tail.
+Read-time derivation alone is insufficient, and the taxonomy in §14 is why: removing the write converts a write-driven block into a render-clock-driven one, which is still per-turn. The composite move is read-time derivation *plus* coarsened render granularity — the second half already validated on the pinned anchors in §19. The arithmetic ceiling: at most a partial recovery of a $281 line, not built, and it does not touch the irreducible per-query tail.
 
 **But the reason to do it is not the money, and this is where the paper's thesis lands on itself.** The decay is per-turn, not per-time. A day with 200 turns decays the store 200 times; a day with 5 turns decays it 5 times. **A belief about a person should fade with elapsed time, not with conversational volume.** And one dimension halves every turn against a render floor: a row written at 0.65 confidence falls to 0.325 after *one* untouched turn — below the floor, and therefore invisible. **That dimension may be effectively write-only: written on every turn, and unreadable by the next one.**
 
 That is a hypothesis with a named test, not a finding. The test is to read the store and check whether any row of that dimension has ever been visible at render time on a turn after the one that wrote it. It is labeled uninvestigated in the engineering record and it is labeled uninvestigated here. **A block was investigated because it was expensive, and the investigation found that the expensive thing was probably also broken. The cost was the symptom that made anyone look.**
 
-## 22. Open problems and corrections
+## 23. Open problems and corrections
 
 Carried forward from Article I, updated. **Fabrication-floor calibration** is unchanged: the suppression threshold remains set from first principles, with re-measurement gated on accumulated logged fabrications rather than curve-fitted to a handful. **Behavioral equivalence across model generations** — the identity has now survived three frontier generations, and the probe triad plus drift telemetry verify what they were designed to verify, but "the facts survive and the register holds" remains a lower bound on continuity, not a proof; a paired-output blind cross-generation diff is designed and still not run at depth. **Generalizing past N=1** is unchanged, and the forensic archive is still a policy and privacy problem before it is a storage problem.
 
 New:
 
 - **Two of forty-eight warm invalidations, $1.35, remain unattributed** after five tests.
-- **Pinned-anchor edits remain structurally undetectable at the schema level** — no update-timestamp column — so the instrumentation added is a log grep, not a queryable history. And **no measured data has yet been cited from it.** It was built, committed, and has produced no published count. The failover instrumentation *did* produce the §15 findings. Do not read the two as both having paid off.
+- **Pinned-anchor edits remain structurally undetectable at the schema level** — no update-timestamp column — so the instrumentation added is a log grep, not a queryable history. And **no measured data has yet been cited from it.** It was built, committed, and has produced no published count. The failover instrumentation *did* produce the §8 findings. Do not read the two as both having paid off.
 - **Failover cost is recorded on the wrong side of the retry.** The discarded attempt has no row. A durable fix means either persisting its usage or reconciling per-model spend against the provider ledger rather than the message column. Neither is built. **Until one is, every cost-by-served-model figure in this system — including several in this paper — is biased in a known direction by an unknown magnitude.**
 - **The invisible-spend figure is an unweighted upper bound.** The $124 applies a flat per-call proxy to all 220 failovers, including classes that bill nothing. A bucket-weighted figure is one log query away and has not been produced. Read it as an estimated upper bound or not at all.
 - **The image/refusal link is untested.** The correlation is real, the causal claim is not established, and the cross-tabulation that would test it is newly possible and has not been run.
-- **The behavior-pin lane is uncapped and the agent has been told it is privileged.** The instrument exists, it fires at 60% of budget, and the drift has not been observed. The specification in §5.1 adds a third exposure — direct read access to the evicted pins — and the counter distinguishes none of the three. Log the ship date; a pre/post split on the pin-mutation log is the only thing that will make the lane's growth interpretable.
+- **The behavior-pin lane is uncapped and the agent has been told it is privileged.** The instrument exists, it fires at 60% of budget, and the drift has not been observed. The specification in §6 adds a third exposure — direct read access to the evicted pins — and the counter distinguishes none of the three. Log the ship date; a pre/post split on the pin-mutation log is the only thing that will make the lane's growth interpretable.
 - **The document fix is unverified in production.** No document has been in-window since it shipped.
 - **The state-writer fix is unverified.** The parse-failure rate collapsing from 51% is the metric; the re-run is due.
 - **The cost ledger still cannot reconcile** — and this system publishes ledger reconciliation as one of its instruments. That is a gap between an instrument's claim and its current coverage, and naming it is cheaper than discovering it in a quarter.
 - **The per-query retrieval tail — 48% of a warm turn — is untouched and may be irreducible** without a retrieval cut, which the stack's invariants forbid. This remains the honest headline: **the largest remaining cost line is the one the architecture is deliberately unwilling to reduce.**
 - **Cache warming is deprioritized, not disproven.**
 
-## 23. What travels
+## 24. What travels
 
 1. **Content identity is necessary; position identity is the invariant.** In a prefix-keyed cache, a block that is byte-identical turn to turn still misses if anything before it changed. Test the property that determines the outcome, not the property that is easy to assert — and note that a block placed after a growing conversation history misses 100% of the time, by construction, not rarely.
 2. **A block's volatility has three orthogonal sources** — write-driven, render-clock-driven, query-driven — and instrumenting writes, the obvious move, is blind to two of them.
