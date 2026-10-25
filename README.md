@@ -1,5 +1,7 @@
 # Do Not Trust My Labels
 
+![Cover](./Substrate_Do_Not_Trust_My_Labels_Cover.png)
+
 **Granting autonomy to a production LLM agent, the specification it wrote for its own interior, and five silent defects found by following the money.**
 
 ```
