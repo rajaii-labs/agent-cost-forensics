@@ -52,7 +52,7 @@ Substrate is a production AI agent built on Claude that I have run for one user,
   year        = {2026},
   month       = nov,
   edition     = {Second},
-  note        = {Substrate series, Article II, second edition; first published July 2026}
+  note        = {Substrate series, Article II. First published July 2026}
 }
 ```
 

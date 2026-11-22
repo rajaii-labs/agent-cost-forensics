@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you reference this work, please cite it using the metadata below."
-title: "Do Not Trust My Labels"
+title: "Do Not Trust My Labels: Following one AI agent’s bill to five failures that raised no error, and the specification the agent wrote to check itself"
 version: "2.0.0"
 authors:
   - family-names: "Rajaii"
@@ -19,8 +19,8 @@ keywords:
   - Substrate
 preferred-citation:
   type: report
-  title: "Do Not Trust My Labels"
-  edition: "Second edition"
+  title: "Do Not Trust My Labels: Following one AI agent’s bill to five failures that raised no error, and the specification the agent wrote to check itself"
+  edition: "2nd"
   authors:
     - family-names: "Rajaii"
       given-names: "Ramin"
