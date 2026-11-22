@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you reference this work, please cite it using the metadata below."
+title: "Do Not Trust My Labels"
+version: "2.0.0"
+authors:
+  - family-names: "Rajaii"
+    given-names: "Ramin"
+    orcid: "https://orcid.org/0009-0009-5517-6701"
+    affiliation: "Rajaii Labs"
+date-released: "2026-11-21"
+url: "https://github.com/rajaii-labs/agent-cost-forensics"
+keywords:
+  - LLM agents
+  - silent failure
+  - cost forensics
+  - prompt caching
+  - measurement validity
+  - agent autonomy
+  - Substrate
+preferred-citation:
+  type: report
+  title: "Do Not Trust My Labels"
+  edition: "Second edition"
+  authors:
+    - family-names: "Rajaii"
+      given-names: "Ramin"
+      orcid: "https://orcid.org/0009-0009-5517-6701"
+      affiliation: "Rajaii Labs"
+  institution:
+    name: "Rajaii Labs"
+  month: 11
+  year: 2026
+  notes: "Substrate series, Article II, second edition (first published July 2026)"
