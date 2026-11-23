@@ -12,8 +12,8 @@ Substrate is a production AI agent built on Claude that I have run for one user,
 
 **[Read the PDF](./Substrate_Cost_Forensics.pdf)** · **[Read the full text (Markdown)](./Substrate_Do_Not_Trust_My_Labels.md)** · **[The first edition](./archive/first-edition/README.md)** · **[Sources](./sources.md)**
 
-**The Substrate series:** [Article I](https://github.com/rajaii-labs/agent-eval-methodology) · Article II, this paper · [Article III](https://github.com/raminrajaii/substrate-preconditions) · [Article IV](https://github.com/raminrajaii/substrate-choices) · [Article V](https://github.com/raminrajaii/substrate-recursion)\
-**How to cite:** Rajaii, R. (2026). *Do Not Trust My Labels* (2nd ed.). Rajaii Labs, Substrate series, Article II. [BibTeX](#citation) · [CITATION.cff](./CITATION.cff)
+**The Substrate series:** [Article I](https://github.com/rajaii-labs/agent-eval-methodology) · Article II, this paper · [Article III](https://github.com/rajaii-labs/substrate-preconditions) · [Article IV](https://github.com/rajaii-labs/substrate-choices) · [Article V](https://github.com/rajaii-labs/substrate-recursion)\
+**How to cite:** Rajaii, R. (2026). *Do Not Trust My Labels: Following one AI agent’s bill to five failures that raised no error, and the specification the agent wrote to check itself* (2nd ed.). Rajaii Labs, Substrate series, Article II. [BibTeX](#citation) · [CITATION.cff](./CITATION.cff)
 
 ---
 
@@ -38,9 +38,9 @@ Substrate is a production AI agent built on Claude that I have run for one user,
 
 1. **Recall, Negation, Abstention** — Rajaii Labs, July 2026 · second edition, November 2026. [Repository](https://github.com/rajaii-labs/agent-eval-methodology)
 2. **Do Not Trust My Labels** — Rajaii Labs, July 2026 · second edition, November 2026. *This paper.*
-3. **Preconditions** — Rajaii Labs, August 2026 · second edition, November 2026. [Repository](https://github.com/raminrajaii/substrate-preconditions)
-4. **Choices** — Rajaii Labs, October 2026 · second edition, November 2026. [Repository](https://github.com/raminrajaii/substrate-choices)
-5. **Recursion** — Rajaii Labs, November 2026. [Repository](https://github.com/raminrajaii/substrate-recursion)
+3. **Preconditions** — Rajaii Labs, August 2026 · second edition, November 2026. [Repository](https://github.com/rajaii-labs/substrate-preconditions)
+4. **Choices** — Rajaii Labs, October 2026 · second edition, November 2026. [Repository](https://github.com/rajaii-labs/substrate-choices)
+5. **Recursion** — Rajaii Labs, November 2026. [Repository](https://github.com/rajaii-labs/substrate-recursion)
 
 ## Citation
 
